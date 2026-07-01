@@ -1,0 +1,28 @@
+[
+  {
+    "id": "SETUP-001",
+    "category": "setup",
+    "title": "프로젝트 초기 세팅 — create-next-app + 하네스",
+    "description": "mychat 프로젝트를 Next.js 16 + TailwindCSS v4 기반으로 초기화하고, CLAUDE.md / CONVENTIONS.md / feature_list/ 하네스 구조를 추가한다.",
+    "steps": [
+      "npx create-next-app@latest mychat 실행 후 dev 서버 정상 기동 확인 (localhost:3000)",
+      "CLAUDE.md, CONVENTIONS.md, HARNESS.md 파일이 루트에 존재하는지 확인",
+      "feature_list/ 폴더 및 CHAT.json 파일 존재 확인",
+      "npm run build 에러 없이 통과 확인"
+    ],
+    "passes": true
+  },
+  {
+    "id": "SETUP-002",
+    "category": "setup",
+    "title": "OpenRouter API 연결 — 서버사이드 환경변수",
+    "description": "OpenRouter API 키를 환경변수로 설정하고, /api/chat 라우트에서 서버사이드로만 호출되는지 확인한다.",
+    "steps": [
+      ".env.local에 OPENROUTER_API_KEY 존재 확인",
+      "/api/chat POST 요청 시 OpenRouter로부터 응답 수신 확인 (curl 또는 브라우저 네트워크 탭)",
+      "클라이언트 번들에 API 키가 노출되지 않는지 확인 (NEXT_PUBLIC_ 접두사 없음)",
+      "API 키 누락 시 500 에러 대신 명확한 에러 메시지 반환 확인"
+    ],
+    "passes": false
+  }
+]
