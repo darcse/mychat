@@ -1,63 +1,241 @@
-import Image from "next/image";
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChatInput } from "@/components/ChatInput";
+import {
+  DEFAULT_MODEL_ID,
+  MODEL_STORAGE_KEY,
+  resolveStoredModelId,
+} from "@/constants/models";
+import {
+  resolveStoredWebSearch,
+  WEB_SEARCH_STORAGE_KEY,
+} from "@/constants/web-search";
+import { useChat } from "@/hooks/useChat";
+import { useConversations } from "@/hooks/useConversations";
+import { MenuIcon } from "@/components/icons";
+import { MessageList, WelcomeCard } from "@/components/MessageList";
+import { Sidebar } from "@/components/Sidebar";
+import type { Message } from "@/types/chat";
 
 export default function Home() {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedModelId, setSelectedModelId] = useState(DEFAULT_MODEL_ID);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const {
+    conversations,
+    activeConversation,
+    activeConversationId,
+    hydrated,
+    createConversation,
+    updateConversation,
+    updateTitle,
+    togglePin,
+    deleteConversation,
+    selectConversation,
+  } = useConversations();
+
+  const conversationsRef = useRef(conversations);
+  conversationsRef.current = conversations;
+
+  const activeConversationIdRef = useRef(activeConversationId);
+  activeConversationIdRef.current = activeConversationId;
+
+  const handleMessagesUpdated = useCallback(
+    (nextMessages: Message[]) => {
+      const conversationId = activeConversationIdRef.current;
+      if (!conversationId) return;
+      updateConversation(conversationId, nextMessages, selectedModelId);
+    },
+    [selectedModelId, updateConversation],
+  );
+
+  const { input, setInput, isLoading, sendMessage } = useChat({
+    selectedModelId,
+    webSearchEnabled,
+    messages,
+    setMessages,
+    onMessagesUpdated: handleMessagesUpdated,
+  });
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const hasMessages = messages.length > 0;
+
+  useEffect(() => {
+    const stored = localStorage.getItem(MODEL_STORAGE_KEY);
+    setSelectedModelId(resolveStoredModelId(stored));
+  }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(WEB_SEARCH_STORAGE_KEY);
+    setWebSearchEnabled(resolveStoredWebSearch(stored));
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const conversation = conversationsRef.current.find(
+      (item) => item.id === activeConversationId,
+    );
+
+    setMessages(conversation?.messages ?? []);
+    if (conversation?.modelId) {
+      setSelectedModelId(conversation.modelId);
+    }
+    setInput("");
+  }, [activeConversationId, hydrated, setInput]);
+
+  const handleModelChange = useCallback((modelId: string) => {
+    setSelectedModelId(modelId);
+    localStorage.setItem(MODEL_STORAGE_KEY, modelId);
+  }, []);
+
+  const handleWebSearchChange = useCallback((enabled: boolean) => {
+    setWebSearchEnabled(enabled);
+    localStorage.setItem(WEB_SEARCH_STORAGE_KEY, String(enabled));
+  }, []);
+
+  const handleNewConversation = useCallback(() => {
+    const conversationId = createConversation(selectedModelId);
+    activeConversationIdRef.current = conversationId;
+    setMessages([]);
+    setInput("");
+  }, [createConversation, selectedModelId, setInput]);
+
+  const handleSend = useCallback(async () => {
+    let conversationId = activeConversationIdRef.current;
+    if (!conversationId) {
+      conversationId = createConversation(selectedModelId);
+      activeConversationIdRef.current = conversationId;
+    }
+    await sendMessage();
+  }, [createConversation, selectedModelId, sendMessage]);
+
+  const handleResend = useCallback(
+    async (content: string) => {
+      let conversationId = activeConversationIdRef.current;
+      if (!conversationId) {
+        conversationId = createConversation(selectedModelId);
+        activeConversationIdRef.current = conversationId;
+      }
+      await sendMessage(content);
+    },
+    [createConversation, selectedModelId, sendMessage],
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+
+    const syncSidebar = (matches: boolean) => {
+      setSidebarOpen(!matches);
+    };
+
+    syncSidebar(media.matches);
+
+    const onChange = (event: MediaQueryListEvent) => {
+      syncSidebar(event.matches);
+    };
+
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMessages && !isLoading) return;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isLoading, hasMessages]);
+
+  const headerTitle = activeConversation?.title ?? "새 대화";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex h-dvh overflow-hidden">
+      <Sidebar
+        open={sidebarOpen}
+        conversations={conversations}
+        activeConversationId={activeConversationId}
+        onNewConversation={handleNewConversation}
+        onSelectConversation={selectConversation}
+        onDeleteConversation={deleteConversation}
+        onUpdateTitle={updateTitle}
+        onTogglePin={togglePin}
+      />
+
+      <main className="flex min-w-0 flex-1 flex-col bg-clay-canvas/40">
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-clay-peach/30 bg-clay-canvas/80 px-4 backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((open) => !open)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-clay-lavender/50 bg-clay-lavender/15 text-clay-ink"
+            aria-label={sidebarOpen ? "사이드바 접기" : "사이드바 펼치기"}
+            aria-expanded={sidebarOpen}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <MenuIcon />
+          </button>
+          <span className="truncate text-sm font-medium text-clay-body">
+            {headerTitle}
+          </span>
+        </header>
+
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div
+            className="pointer-events-none absolute top-1/4 left-1/4 h-52 w-52 rounded-full bg-clay-lavender/30 blur-3xl"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute right-1/5 bottom-1/3 h-60 w-60 rounded-full bg-clay-peach/30 blur-3xl"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute top-1/2 left-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full bg-clay-mint/25 blur-3xl"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute right-1/4 bottom-1/4 h-32 w-32 rounded-full bg-clay-coral/15 blur-3xl"
+            aria-hidden="true"
+          />
+
+          <div
+            className={
+              hasMessages
+                ? "grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] overflow-hidden"
+                : "flex min-h-0 flex-1 flex-col items-center justify-center gap-8 overflow-hidden px-4"
+            }
           >
-            Documentation
-          </a>
+            {hasMessages ? (
+              <div className="min-h-0 overflow-y-auto overscroll-contain">
+                <MessageList
+                  messages={messages}
+                  bottomRef={bottomRef}
+                  isLoading={isLoading}
+                  onResend={handleResend}
+                />
+              </div>
+            ) : (
+              <WelcomeCard />
+            )}
+
+            <div
+              className={
+                hasMessages
+                  ? "shrink-0 border-t border-clay-mint/40 bg-clay-canvas/85 px-4 pt-4 pb-6 backdrop-blur-sm"
+                  : "w-full max-w-3xl"
+              }
+            >
+              <ChatInput
+                value={input}
+                onChange={setInput}
+                onSend={handleSend}
+                selectedModelId={selectedModelId}
+                onModelChange={handleModelChange}
+                webSearchEnabled={webSearchEnabled}
+                onWebSearchChange={handleWebSearchChange}
+                docked={hasMessages}
+                disabled={isLoading}
+              />
+            </div>
+          </div>
         </div>
       </main>
     </div>
