@@ -257,7 +257,7 @@ export function ChatInput({
     >
       <div
         ref={cardRef}
-        className={`relative flex flex-col rounded-[var(--radius-xl)] border bg-clay-canvas/95 px-3 pt-3 pb-2 shadow-sm dark:border-[var(--border)] dark:bg-[var(--input-bg)] ${
+        className={`relative flex flex-col rounded-[var(--radius-xl)] border bg-clay-canvas/95 px-3 pt-3 pb-2 shadow-sm dark:border-[var(--border)] dark:bg-none dark:bg-[var(--input-bg)] ${
           disabled ? "opacity-60" : ""
         } ${
           docked
@@ -284,7 +284,7 @@ export function ChatInput({
           rows={1}
           placeholder="메시지를 입력하세요..."
           disabled={disabled}
-          className="max-h-[200px] min-h-[44px] w-full resize-none bg-transparent px-1 text-sm leading-relaxed text-clay-ink outline-none placeholder:text-clay-muted-soft disabled:cursor-not-allowed dark:text-[var(--text-primary)] dark:placeholder-[var(--text-secondary)]"
+          className="max-h-[200px] min-h-[44px] w-full resize-none bg-transparent px-1 text-sm leading-relaxed text-clay-ink outline-none placeholder:text-clay-muted-soft disabled:cursor-not-allowed dark:bg-[var(--input-bg)] dark:text-[var(--text-primary)] dark:placeholder-[var(--text-secondary)]"
           aria-label="메시지 입력"
         />
 

@@ -42,6 +42,18 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              const theme = localStorage.getItem('mychat-theme') || 'system';
+              const isDark = theme === 'dark' ||
+                (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+              if (isDark) document.documentElement.classList.add('dark');
+            })();
+          `,
+        }}
+      />
       <body className="min-h-full flex flex-col">
         <ServiceWorkerRegistration />
         {children}
