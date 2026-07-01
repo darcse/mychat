@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="mychat">
+  <rect width="512" height="512" rx="108" fill="#E8654A" />
+  <path
+    fill="#FFFFFF"
+    d="M136 120h240c22.091 0 40 17.909 40 40v128c0 22.091-17.909 40-40 40H224l-56 56v-56H136c-22.091 0-40-17.909-40-40V160c0-22.091 17.909-40 40-40z"
+  />
+  <circle cx="208" cy="224" r="18" fill="#E8654A" />
+  <circle cx="256" cy="224" r="18" fill="#E8654A" />
+  <circle cx="304" cy="224" r="18" fill="#E8654A" />
+</svg>
