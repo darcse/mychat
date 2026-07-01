@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { stripMetadata } from "@/lib/chat-content";
+import { createErrorMessage } from "@/lib/chat-messages";
 import type { Message } from "@/types/chat";
 import { toApiMessages } from "@/types/chat";
 
@@ -160,17 +161,11 @@ export function useChat({
 
       if (!response.ok) {
         const data = (await response.json()) as ApiChatResponse;
-        const next = [
-          ...conversation,
-          {
-            id: assistantId,
-            role: "assistant" as const,
-            content: formatApiError(data),
-            isError: true,
-            createdAt: Date.now(),
-          },
-        ];
-        commitMessages(setMessages, onMessagesUpdated, next);
+        commitMessages(
+          setMessages,
+          onMessagesUpdated,
+          createErrorMessage(conversation, assistantId, formatApiError(data)),
+        );
         return;
       }
 
@@ -203,33 +198,21 @@ export function useChat({
       );
 
       if (streamError) {
-        const next = [
-          ...conversation,
-          {
-            id: assistantId,
-            role: "assistant" as const,
-            content: streamError,
-            isError: true,
-            createdAt: Date.now(),
-          },
-        ];
-        commitMessages(setMessages, onMessagesUpdated, next);
+        commitMessages(
+          setMessages,
+          onMessagesUpdated,
+          createErrorMessage(conversation, assistantId, streamError),
+        );
         return;
       }
 
       const finalContent = stripMetadata(accumulated);
       if (!finalContent) {
-        const next = [
-          ...conversation,
-          {
-            id: assistantId,
-            role: "assistant" as const,
-            content: "응답이 비어 있습니다.",
-            isError: true,
-            createdAt: Date.now(),
-          },
-        ];
-        commitMessages(setMessages, onMessagesUpdated, next);
+        commitMessages(
+          setMessages,
+          onMessagesUpdated,
+          createErrorMessage(conversation, assistantId, "응답이 비어 있습니다."),
+        );
         return;
       }
 
@@ -246,17 +229,15 @@ export function useChat({
       ];
       commitMessages(setMessages, onMessagesUpdated, next);
     } catch {
-      const next = [
-        ...conversation,
-        {
-          id: assistantId,
-          role: "assistant" as const,
-          content: "네트워크 오류가 발생했습니다. 다시 시도해 주세요.",
-          isError: true,
-          createdAt: Date.now(),
-        },
-      ];
-      commitMessages(setMessages, onMessagesUpdated, next);
+      commitMessages(
+        setMessages,
+        onMessagesUpdated,
+        createErrorMessage(
+          conversation,
+          assistantId,
+          "네트워크 오류가 발생했습니다. 다시 시도해 주세요.",
+        ),
+      );
     } finally {
       setIsLoading(false);
     }

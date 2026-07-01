@@ -12,23 +12,43 @@ import {
   WEB_SEARCH_STORAGE_KEY,
 } from "@/constants/web-search";
 import { useChat } from "@/hooks/useChat";
-import { useConversations } from "@/hooks/useConversations";
+import {
+  sortConversations,
+  useConversations,
+} from "@/hooks/useConversations";
 import { MenuIcon } from "@/components/icons";
 import { MessageList, WelcomeCard } from "@/components/MessageList";
 import { Sidebar } from "@/components/Sidebar";
-import type { Message } from "@/types/chat";
+import { CONVERSATIONS_STORAGE_KEY, type Conversation, type Message } from "@/types/chat";
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedModelId, setSelectedModelId] = useState(DEFAULT_MODEL_ID);
-  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedModelId, setSelectedModelId] = useState(() => {
+    if (typeof window === "undefined") return DEFAULT_MODEL_ID;
+    const stored = localStorage.getItem(MODEL_STORAGE_KEY);
+    if (stored) return resolveStoredModelId(stored);
+    try {
+      const raw = localStorage.getItem(CONVERSATIONS_STORAGE_KEY);
+      if (!raw) return DEFAULT_MODEL_ID;
+      const parsed = JSON.parse(raw) as Conversation[];
+      if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_MODEL_ID;
+      const sorted = sortConversations(parsed);
+      return sorted[0]?.modelId ?? DEFAULT_MODEL_ID;
+    } catch {
+      return DEFAULT_MODEL_ID;
+    }
+  });
+  const [webSearchEnabled, setWebSearchEnabled] = useState(() =>
+    typeof window !== "undefined"
+      ? resolveStoredWebSearch(localStorage.getItem(WEB_SEARCH_STORAGE_KEY))
+      : false,
+  );
+  const [draftMessages, setDraftMessages] = useState<Message[] | null>(null);
 
   const {
     conversations,
     activeConversation,
     activeConversationId,
-    hydrated,
     createConversation,
     updateConversation,
     updateTitle,
@@ -37,11 +57,23 @@ export default function Home() {
     selectConversation,
   } = useConversations();
 
-  const conversationsRef = useRef(conversations);
-  conversationsRef.current = conversations;
+  const messages = draftMessages ?? activeConversation?.messages ?? [];
 
   const activeConversationIdRef = useRef(activeConversationId);
-  activeConversationIdRef.current = activeConversationId;
+
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
+
+  const setMessages = useCallback(
+    (next: React.SetStateAction<Message[]>) => {
+      setDraftMessages((prev) => {
+        const current = prev ?? activeConversation?.messages ?? [];
+        return typeof next === "function" ? next(current) : next;
+      });
+    },
+    [activeConversation?.messages],
+  );
 
   const handleMessagesUpdated = useCallback(
     (nextMessages: Message[]) => {
@@ -63,30 +95,6 @@ export default function Home() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const hasMessages = messages.length > 0;
 
-  useEffect(() => {
-    const stored = localStorage.getItem(MODEL_STORAGE_KEY);
-    setSelectedModelId(resolveStoredModelId(stored));
-  }, []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(WEB_SEARCH_STORAGE_KEY);
-    setWebSearchEnabled(resolveStoredWebSearch(stored));
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-
-    const conversation = conversationsRef.current.find(
-      (item) => item.id === activeConversationId,
-    );
-
-    setMessages(conversation?.messages ?? []);
-    if (conversation?.modelId) {
-      setSelectedModelId(conversation.modelId);
-    }
-    setInput("");
-  }, [activeConversationId, hydrated, setInput]);
-
   const handleModelChange = useCallback((modelId: string) => {
     setSelectedModelId(modelId);
     localStorage.setItem(MODEL_STORAGE_KEY, modelId);
@@ -98,16 +106,36 @@ export default function Home() {
   }, []);
 
   const handleNewConversation = useCallback(() => {
-    const conversationId = createConversation(selectedModelId);
-    activeConversationIdRef.current = conversationId;
-    setMessages([]);
+    createConversation(selectedModelId);
+    setDraftMessages([]);
     setInput("");
   }, [createConversation, selectedModelId, setInput]);
 
+  const handleSelectConversation = useCallback(
+    (id: string) => {
+      selectConversation(id);
+      const conversation = conversations.find((item) => item.id === id);
+      setDraftMessages(conversation?.messages ?? []);
+      if (conversation?.modelId) {
+        setSelectedModelId(conversation.modelId);
+      }
+      setInput("");
+    },
+    [conversations, selectConversation, setInput],
+  );
+
+  const handleDeleteConversation = useCallback(
+    (id: string) => {
+      deleteConversation(id);
+      setDraftMessages(null);
+      setInput("");
+    },
+    [deleteConversation, setInput],
+  );
+
   const handleSend = useCallback(async () => {
-    let conversationId = activeConversationIdRef.current;
-    if (!conversationId) {
-      conversationId = createConversation(selectedModelId);
+    if (!activeConversationIdRef.current) {
+      const conversationId = createConversation(selectedModelId);
       activeConversationIdRef.current = conversationId;
     }
     await sendMessage();
@@ -115,9 +143,8 @@ export default function Home() {
 
   const handleResend = useCallback(
     async (content: string) => {
-      let conversationId = activeConversationIdRef.current;
-      if (!conversationId) {
-        conversationId = createConversation(selectedModelId);
+      if (!activeConversationIdRef.current) {
+        const conversationId = createConversation(selectedModelId);
         activeConversationIdRef.current = conversationId;
       }
       await sendMessage(content);
@@ -156,8 +183,8 @@ export default function Home() {
         conversations={conversations}
         activeConversationId={activeConversationId}
         onNewConversation={handleNewConversation}
-        onSelectConversation={selectConversation}
-        onDeleteConversation={deleteConversation}
+        onSelectConversation={handleSelectConversation}
+        onDeleteConversation={handleDeleteConversation}
         onUpdateTitle={updateTitle}
         onTogglePin={togglePin}
       />

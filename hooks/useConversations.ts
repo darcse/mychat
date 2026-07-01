@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   CONVERSATIONS_STORAGE_KEY,
   deriveConversationTitle,
@@ -35,18 +35,17 @@ export function sortConversations(conversations: Conversation[]) {
 }
 
 export function useConversations() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(
-    null,
+  const [conversations, setConversations] = useState<Conversation[]>(() =>
+    typeof window !== "undefined" ? sortConversations(loadConversations()) : [],
   );
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    const stored = sortConversations(loadConversations());
-    setConversations(stored);
-    setActiveConversationId(stored[0]?.id ?? null);
-    setHydrated(true);
-  }, []);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(
+    () => {
+      if (typeof window === "undefined") return null;
+      const stored = sortConversations(loadConversations());
+      return stored[0]?.id ?? null;
+    },
+  );
+  const hydrated = typeof window !== "undefined";
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId),
