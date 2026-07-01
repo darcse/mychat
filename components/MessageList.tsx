@@ -8,6 +8,14 @@ import type { Message } from "@/types/chat";
 
 export type { Message };
 
+function formatMessageTimeShort(timestamp: number): string {
+  return new Intl.DateTimeFormat("ko-KR", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(timestamp));
+}
+
 type MessageListProps = {
   messages: Message[];
   bottomRef: RefObject<HTMLDivElement | null>;
@@ -19,7 +27,7 @@ function TypingIndicator() {
   return (
     <div className="flex justify-start">
       <div
-        className="inline-flex items-center gap-1.5 rounded-[var(--radius-lg)] border border-clay-mint/50 bg-clay-canvas/95 px-4 py-3 shadow-sm"
+        className="inline-flex items-center gap-1.5 rounded-[var(--radius-lg)] border border-clay-mint/50 bg-clay-canvas/95 px-4 py-3 shadow-sm dark:border-[var(--border)] dark:bg-[var(--assistant-bubble-bg)]"
         aria-label="응답 생성 중"
         role="status"
       >
@@ -42,7 +50,7 @@ function TypingIndicator() {
 
 function WebSearchBadge() {
   return (
-    <span className="mb-2 inline-flex items-center gap-1 rounded-[var(--radius-pill)] border border-clay-coral/40 bg-clay-coral/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-clay-coral uppercase">
+    <span className="mb-2 inline-flex items-center gap-1 rounded-[var(--radius-pill)] border border-clay-coral/40 bg-clay-coral/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-clay-coral uppercase dark:bg-[var(--surface)] dark:text-[var(--text-secondary)]">
       웹 검색 사용
     </span>
   );
@@ -81,28 +89,50 @@ function CopyButton({
   );
 }
 
-function UserMessageActions({
+function UserMessageFooter({
   content,
+  createdAt,
   onResend,
 }: {
   content: string;
+  createdAt: number;
   onResend?: (content: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+    <div className="mt-1 flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+      <time
+        dateTime={new Date(createdAt).toISOString()}
+        className="text-xs text-clay-muted dark:text-[var(--text-secondary)]"
+      >
+        {formatMessageTimeShort(createdAt)}
+      </time>
       {onResend && (
-        <button
-          type="button"
-          onClick={() => onResend(content)}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] text-clay-muted transition-colors hover:bg-clay-lavender/20 hover:text-clay-coral"
-          aria-label="재질문"
-        >
-          <ResendIcon />
-        </button>
+        <>
+          <span
+            aria-hidden="true"
+            className="text-clay-muted/60 dark:text-[var(--text-secondary)]/60"
+          >
+            ·
+          </span>
+          <button
+            type="button"
+            onClick={() => onResend(content)}
+            className="inline-flex h-6 w-6 items-center justify-center rounded-[var(--radius-sm)] text-clay-muted transition-colors hover:bg-clay-lavender/20 hover:text-clay-coral dark:text-[var(--text-secondary)] dark:hover:text-[var(--text-primary)]"
+            aria-label="재질문"
+          >
+            <ResendIcon />
+          </button>
+        </>
       )}
+      <span
+        aria-hidden="true"
+        className="text-clay-muted/60 dark:text-[var(--text-secondary)]/60"
+      >
+        ·
+      </span>
       <CopyButton
         text={content}
-        className="text-clay-muted hover:text-clay-coral"
+        className="h-6 w-6 text-clay-muted hover:text-clay-coral dark:text-[var(--text-secondary)] dark:hover:text-[var(--text-primary)]"
       />
     </div>
   );
@@ -114,8 +144,8 @@ function AssistantMessageFooter({ message }: { message: Message }) {
   }
 
   return (
-    <div className="mt-2 flex items-center justify-between gap-3 border-t border-clay-hairline/60 pt-2">
-      <span className="truncate text-xs text-clay-muted">
+    <div className="mt-2 flex items-center justify-between gap-3 border-t border-clay-hairline/60 pt-2 dark:border-[var(--border)]">
+      <span className="truncate text-xs text-clay-muted dark:text-[var(--text-secondary)]">
         {formatModelLabel(message.modelId)}
       </span>
       <CopyButton
@@ -139,26 +169,32 @@ function MessageBubble({
   if (isUser) {
     return (
       <div className="group flex max-w-[85%] flex-col items-end">
-        <div className="whitespace-pre-wrap rounded-[var(--radius-lg)] bg-gradient-to-br from-clay-coral to-clay-peach px-4 py-3 text-sm leading-relaxed text-clay-on-primary shadow-sm">
+        <div className="whitespace-pre-wrap rounded-[var(--radius-lg)] bg-gradient-to-br from-clay-coral to-clay-peach px-4 py-3 text-sm leading-relaxed text-clay-on-primary shadow-sm dark:bg-[var(--user-bubble-bg)] dark:from-[var(--user-bubble-bg)] dark:to-[var(--user-bubble-bg)]">
           {message.content}
         </div>
-        <UserMessageActions content={message.content} onResend={onResend} />
+        <UserMessageFooter
+          content={message.content}
+          createdAt={message.createdAt}
+          onResend={onResend}
+        />
       </div>
     );
   }
 
   if (message.isError) {
     return (
-      <div className="max-w-[85%] whitespace-pre-wrap rounded-[var(--radius-lg)] border border-red-200 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-800 shadow-sm">
+      <div className="max-w-[85%] whitespace-pre-wrap rounded-[var(--radius-lg)] border border-red-200 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-800 shadow-sm dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
         {message.content}
       </div>
     );
   }
 
   return (
-    <div className="max-w-[85%] rounded-[var(--radius-lg)] border border-clay-mint/50 bg-clay-canvas/95 px-4 py-3 text-sm leading-relaxed text-clay-body shadow-sm">
+    <div className="max-w-[85%] rounded-[var(--radius-lg)] border border-clay-mint/50 bg-clay-canvas/95 px-4 py-3 text-sm leading-relaxed text-clay-body shadow-sm dark:border-[var(--border)] dark:bg-[var(--assistant-bubble-bg)] dark:text-[var(--text-primary)]">
       {!message.isError && message.usedWebSearch && <WebSearchBadge />}
-      <MarkdownContent content={message.content} />
+      <div className="dark:text-[var(--text-primary)]">
+        <MarkdownContent content={message.content} />
+      </div>
       <AssistantMessageFooter message={message} />
     </div>
   );
@@ -167,11 +203,11 @@ function MessageBubble({
 export function WelcomeCard() {
   return (
     <div className="relative max-w-md rounded-[var(--radius-xl)] bg-gradient-to-br from-clay-lavender via-clay-peach to-clay-mint p-[1.5px] shadow-sm">
-      <div className="rounded-[var(--radius-xl)] bg-clay-canvas/95 px-8 py-10 text-center backdrop-blur-sm">
-        <p className="text-xl font-medium tracking-tight text-clay-ink">
+      <div className="rounded-[var(--radius-xl)] bg-clay-canvas/95 px-8 py-10 text-center backdrop-blur-sm dark:bg-[var(--surface)]">
+        <p className="text-xl font-medium tracking-tight text-clay-ink dark:text-[var(--text-primary)]">
           무엇이든 물어보세요
         </p>
-        <p className="mt-2 text-sm leading-relaxed text-clay-body">
+        <p className="mt-2 text-sm leading-relaxed text-clay-body dark:text-[var(--text-secondary)]">
           멀티 AI 챗을 시작할 준비가 되었습니다.
         </p>
       </div>
@@ -197,7 +233,7 @@ export function MessageList({
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch justify-start gap-4 px-4 pt-6 pb-2">
+    <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch justify-start gap-4 px-4 pt-6 pb-2 dark:bg-[var(--background)]">
       {visibleMessages.map((message) => (
         <div
           key={message.id}

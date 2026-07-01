@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Clay color tokens — DESIGN.md */
   --color-primary: #0a0a0a;
@@ -34,6 +36,19 @@
 
   /* Sidebar */
   --sidebar-width: 288px;
+}
+
+.dark {
+  --background: #0f0f10;
+  --surface: #1a1a1d;
+  --surface-elevated: #242428;
+  --text-primary: #e8e8ea;
+  --text-secondary: #9b9ba4;
+  --border: #2e2e33;
+  --sidebar-bg: #131314;
+  --input-bg: #1e1e21;
+  --user-bubble-bg: #c45a3a;
+  --assistant-bubble-bg: #1e1e21;
 }
 
 @theme inline {
@@ -97,6 +112,11 @@ body {
       transparent 50%
     );
   background-attachment: fixed;
+}
+
+.dark body {
+  background-color: var(--background);
+  background-image: none;
 }
 
 @keyframes typing-bounce {

@@ -112,7 +112,7 @@ function ModelPopover({
 
   return (
     <div
-      className="absolute bottom-full left-0 right-0 z-50 mb-3 rounded-[var(--radius-xl)] border border-clay-lavender/50 bg-clay-canvas/98 p-4 shadow-lg backdrop-blur-md"
+      className="absolute bottom-full left-0 right-0 z-50 mb-3 rounded-[var(--radius-xl)] border border-clay-lavender/50 bg-clay-canvas/98 p-4 shadow-lg backdrop-blur-md dark:border-[var(--border)] dark:bg-[var(--surface-elevated)]"
       role="dialog"
       aria-label="모델 선택"
     >
@@ -257,7 +257,7 @@ export function ChatInput({
     >
       <div
         ref={cardRef}
-        className={`relative flex flex-col rounded-[var(--radius-xl)] border bg-clay-canvas/95 px-3 pt-3 pb-2 shadow-sm ${
+        className={`relative flex flex-col rounded-[var(--radius-xl)] border bg-clay-canvas/95 px-3 pt-3 pb-2 shadow-sm dark:border-[var(--border)] dark:bg-[var(--input-bg)] ${
           disabled ? "opacity-60" : ""
         } ${
           docked
@@ -284,17 +284,17 @@ export function ChatInput({
           rows={1}
           placeholder="메시지를 입력하세요..."
           disabled={disabled}
-          className="max-h-[200px] min-h-[44px] w-full resize-none bg-transparent px-1 text-sm leading-relaxed text-clay-ink outline-none placeholder:text-clay-muted-soft disabled:cursor-not-allowed"
+          className="max-h-[200px] min-h-[44px] w-full resize-none bg-transparent px-1 text-sm leading-relaxed text-clay-ink outline-none placeholder:text-clay-muted-soft disabled:cursor-not-allowed dark:text-[var(--text-primary)] dark:placeholder-[var(--text-secondary)]"
           aria-label="메시지 입력"
         />
 
-        <div className="mt-1 flex items-center justify-between gap-2 border-t border-clay-hairline/60 pt-2">
+        <div className="mt-1 flex items-center justify-between gap-2 border-t border-clay-hairline/60 pt-2 dark:border-[var(--border)]">
           <div className="flex min-w-0 items-center gap-1.5">
             <button
               type="button"
               onClick={() => !disabled && setPopoverOpen((prev) => !prev)}
               disabled={disabled}
-              className="inline-flex max-w-[9rem] items-center gap-1 rounded-[var(--radius-md)] px-2 py-1.5 font-medium text-clay-body hover:bg-clay-lavender/15 disabled:cursor-not-allowed disabled:hover:bg-transparent sm:max-w-[12rem]"
+              className="inline-flex max-w-[9rem] items-center gap-1 rounded-[var(--radius-md)] px-2 py-1.5 font-medium text-clay-body hover:bg-clay-lavender/15 disabled:cursor-not-allowed disabled:hover:bg-transparent sm:max-w-[12rem] dark:bg-[var(--surface)] dark:text-[var(--text-primary)] dark:hover:bg-[var(--surface-elevated)]"
               aria-label="모델 선택"
               aria-expanded={popoverOpen}
               aria-haspopup="dialog"
@@ -314,7 +314,7 @@ export function ChatInput({
               className={`inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] px-2.5 py-1.5 transition-all disabled:cursor-not-allowed ${
                 webSearchEnabled
                   ? "border border-clay-coral/50 bg-clay-coral/15 font-semibold text-clay-coral shadow-sm"
-                  : "border-0 bg-transparent font-medium text-clay-muted hover:text-clay-body"
+                  : "border-0 bg-transparent font-medium text-clay-muted hover:text-clay-body dark:text-[var(--text-secondary)]"
               }`}
             >
               <GlobeIcon />

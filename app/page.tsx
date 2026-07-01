@@ -150,7 +150,7 @@ export default function Home() {
   const headerTitle = activeConversation?.title ?? "새 대화";
 
   return (
-    <div className="flex h-dvh overflow-hidden">
+    <div className="flex h-dvh overflow-hidden dark:bg-[var(--background)]">
       <Sidebar
         open={sidebarOpen}
         conversations={conversations}
@@ -162,37 +162,37 @@ export default function Home() {
         onTogglePin={togglePin}
       />
 
-      <main className="flex min-w-0 flex-1 flex-col bg-clay-canvas/40">
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-clay-peach/30 bg-clay-canvas/80 px-4 backdrop-blur-sm">
+      <main className="flex min-w-0 flex-1 flex-col bg-clay-canvas/40 dark:bg-[var(--background)]">
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-clay-peach/30 bg-clay-canvas/80 px-4 backdrop-blur-sm dark:border-[var(--border)] dark:bg-[var(--surface)]">
           <button
             type="button"
             onClick={() => setSidebarOpen((open) => !open)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-clay-lavender/50 bg-clay-lavender/15 text-clay-ink"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-clay-lavender/50 bg-clay-lavender/15 text-clay-ink dark:border-[var(--border)] dark:bg-[var(--surface)] dark:text-[var(--text-primary)]"
             aria-label={sidebarOpen ? "사이드바 접기" : "사이드바 펼치기"}
             aria-expanded={sidebarOpen}
           >
             <MenuIcon />
           </button>
-          <span className="truncate text-sm font-medium text-clay-body">
+          <span className="truncate text-sm font-medium text-clay-body dark:text-[var(--text-primary)]">
             {headerTitle}
           </span>
         </header>
 
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
           <div
-            className="pointer-events-none absolute top-1/4 left-1/4 h-52 w-52 rounded-full bg-clay-lavender/30 blur-3xl"
+            className="pointer-events-none absolute top-1/4 left-1/4 h-52 w-52 rounded-full bg-clay-lavender/30 blur-3xl dark:hidden"
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute right-1/5 bottom-1/3 h-60 w-60 rounded-full bg-clay-peach/30 blur-3xl"
+            className="pointer-events-none absolute right-1/5 bottom-1/3 h-60 w-60 rounded-full bg-clay-peach/30 blur-3xl dark:hidden"
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute top-1/2 left-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full bg-clay-mint/25 blur-3xl"
+            className="pointer-events-none absolute top-1/2 left-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full bg-clay-mint/25 blur-3xl dark:hidden"
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute right-1/4 bottom-1/4 h-32 w-32 rounded-full bg-clay-coral/15 blur-3xl"
+            className="pointer-events-none absolute right-1/4 bottom-1/4 h-32 w-32 rounded-full bg-clay-coral/15 blur-3xl dark:hidden"
             aria-hidden="true"
           />
 
@@ -219,7 +219,7 @@ export default function Home() {
             <div
               className={
                 hasMessages
-                  ? "shrink-0 border-t border-clay-mint/40 bg-clay-canvas/85 px-4 pt-4 pb-6 backdrop-blur-sm"
+                  ? "shrink-0 border-t border-clay-mint/40 bg-clay-canvas/85 px-4 pt-4 pb-6 backdrop-blur-sm dark:border-[var(--border)] dark:bg-[var(--surface)]"
                   : "w-full max-w-3xl"
               }
             >
