@@ -329,7 +329,7 @@ export function Sidebar({
 
   return (
     <aside
-      className={`flex shrink-0 flex-col overflow-hidden border-r border-clay-lavender/35 bg-clay-surface-strong/95 backdrop-blur-md transition-[width] duration-300 ease-in-out dark:border-[var(--border)] dark:bg-[var(--sidebar-bg)] dark:text-[var(--text-primary)] ${
+      className={`flex shrink-0 flex-col overflow-hidden border-r border-clay-lavender/35 bg-clay-surface-strong/95 backdrop-blur-md transition-[width] duration-300 ease-in-out dark:border-[var(--border)] dark:bg-[#131314] dark:text-[var(--text-primary)] dark:backdrop-blur-none ${
         open ? "w-72" : "w-0 border-r-0"
       }`}
       aria-hidden={!open}
@@ -352,9 +352,9 @@ export function Sidebar({
 
         <div className="flex min-h-0 flex-1 flex-col px-1.5 pb-4 pt-3">
           {conversations.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center rounded-[var(--radius-xl)] border border-dashed border-clay-lavender/40 bg-clay-surface-soft/80 px-4 py-8 text-center">
-              <p className="text-sm text-clay-body">아직 대화가 없습니다</p>
-              <p className="mt-1 text-xs text-clay-muted-soft">
+            <div className="flex flex-1 flex-col items-center justify-center rounded-[var(--radius-xl)] border border-dashed border-clay-lavender/40 bg-clay-surface-soft/80 px-4 py-8 text-center dark:border-[var(--border)] dark:bg-[#1a1a1d]">
+              <p className="text-sm text-clay-body dark:text-[var(--text-primary)]">아직 대화가 없습니다</p>
+              <p className="mt-1 text-xs text-clay-muted-soft dark:text-[var(--text-secondary)]">
                 새 대화를 시작해 보세요
               </p>
             </div>
